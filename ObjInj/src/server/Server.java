@@ -8,23 +8,32 @@ import server.Cookie.Role;
 
 public class Server {
 
-	private static final int PORT = 1237;
-	private static final int TIMEOUT = 0;
-	private static final int MAXBUFF = 10240;// Maximale Größe für Nachrichten
-	private static DatagramSocket server;
+	private int PORT = 1237;
+	private int TIMEOUT = 0;
+	private int MAXBUFF = 10240;// Maximale Größe für Nachrichten
+
+	private DatagramSocket server;
+
 	private enum Input{isCookie, isString};
-	private static Cookie cookie;
-	private static DatagramPacket input;
+
+	public Server (int[] args) {
+		this.PORT = args[0];
+		this.TIMEOUT = args[1];
+		this.MAXBUFF = args[2];
+	}
 	
-	public static void main(String[] args) {
-		cookie = new Cookie();
+	public void run() {
+
+		Cookie cookie = new Cookie();
+		DatagramPacket input;
+
 		try {
-			server = new DatagramSocket(PORT);
-			server.setSoTimeout(TIMEOUT);	
+			this.server = new DatagramSocket(this.PORT);
+			this.server.setSoTimeout(this.TIMEOUT);	
 
 			while (true) {
-				input = new DatagramPacket(new byte[MAXBUFF], MAXBUFF);
-				server.receive(input);
+				input = new DatagramPacket(new byte[this.MAXBUFF], this.MAXBUFF);
+				this.server.receive(input);
 				
 				byte[] data = getData(input);
 				Input in = checkInput(data);
@@ -75,7 +84,7 @@ public class Server {
 				printCookie();
 			}
 		} else if(in == Input.isCookie) {
-			cookie = new Cookie(input);
+			Cookie cookie = new Cookie(input);
 		}
 	}
 	
@@ -91,7 +100,8 @@ public class Server {
 		return equal;
 	}
 	
-	private static void printCookie() {
+	private static void printCookie(Cookie cookie) {
+		
 		System.out.println("Username: " + cookie.username);
 		System.out.print("Role: ");
 		if(cookie.role == Role.admin) {
@@ -99,5 +109,13 @@ public class Server {
 		} else {
 			System.out.println("normal User");
 		}
+	}
+
+	public static void main(String[] args) {
+		int[] setupParams = new int[args.length];
+		for(int i = 0; i < args.length; i++) {
+			setupParams[i] = Integer.parseInt(args[i]);
+		}
+		Server server = new Server(setupParams);
 	}
 }
